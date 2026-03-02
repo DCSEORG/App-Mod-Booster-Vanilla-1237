@@ -1,0 +1,106 @@
+@page
+@model ExpenseApp.Pages.IndexModel
+@{
+    ViewData["Title"] = "Expenses";
+    ViewData["ActivePage"] = "Index";
+}
+
+@if (Model.ErrorInfo != null)
+{
+    <div class="alert-banner alert-error">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+            <strong>Database Connection Error</strong>
+            <p>@Model.ErrorInfo.Message</p>
+            @if (Model.ErrorInfo.File != null)
+            {
+                <small>Location: @System.IO.Path.GetFileName(Model.ErrorInfo.File) (line @Model.ErrorInfo.LineNumber)</small>
+            }
+            @if (Model.ErrorInfo.IsMangedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
+            {
+                <div class="mi-fix">
+                    <strong>💡 Managed Identity Fix:</strong> @Model.ErrorInfo.ManagedIdentityFix
+                </div>
+            }
+            <small class="dummy-note">Showing sample data below.</small>
+        </div>
+    </div>
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Expenses</h1>
+        <p class="page-subtitle">Manage and track expense submissions</p>
+    </div>
+    <a href="/Create" class="btn btn-primary">
+        <span>+</span> New Expense
+    </a>
+</div>
+
+<!-- Status Filter -->
+<div class="filter-bar">
+    <label class="filter-label">Filter by Status:</label>
+    <div class="filter-buttons">
+        <a href="/Index" class="filter-btn @(Model.StatusFilter == null ? "active" : "")">All</a>
+        <a href="/Index?status=Draft" class="filter-btn @(Model.StatusFilter == "Draft" ? "active" : "")">Draft</a>
+        <a href="/Index?status=Submitted" class="filter-btn @(Model.StatusFilter == "Submitted" ? "active" : "")">Submitted</a>
+        <a href="/Index?status=Approved" class="filter-btn @(Model.StatusFilter == "Approved" ? "active" : "")">Approved</a>
+        <a href="/Index?status=Rejected" class="filter-btn @(Model.StatusFilter == "Rejected" ? "active" : "")">Rejected</a>
+    </div>
+</div>
+
+<!-- Expenses Table -->
+<div class="card">
+    <div class="table-container">
+        <table class="data-table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Employee</th>
+                    <th>Category</th>
+                    <th>Amount (GBP)</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (!Model.Expenses.Any())
+                {
+                    <tr>
+                        <td colspan="7" class="empty-state">No expenses found.</td>
+                    </tr>
+                }
+                @foreach (var expense in Model.Expenses)
+                {
+                    <tr>
+                        <td class="id-cell">#@expense.ExpenseId</td>
+                        <td>
+                            <div class="user-cell">
+                                <div class="avatar">@(expense.UserName.Length > 0 ? expense.UserName[0].ToString() : "?")</div>
+                                <span>@expense.UserName</span>
+                            </div>
+                        </td>
+                        <td>@expense.CategoryName</td>
+                        <td class="amount-cell">£@expense.AmountGBP.ToString("F2")</td>
+                        <td>
+                            <span class="status-badge status-@expense.StatusName.ToLower()">@expense.StatusName</span>
+                        </td>
+                        <td>@expense.ExpenseDate.ToString("dd MMM yyyy")</td>
+                        <td>
+                            <a href="/Details/@expense.ExpenseId" class="btn btn-sm btn-outline">View</a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="summary-bar">
+    <span>Total: <strong>@Model.Expenses.Count</strong> expense(s)</span>
+    @if (Model.Expenses.Any())
+    {
+        <span>Total Amount: <strong>£@Model.Expenses.Sum(e => e.AmountGBP).ToString("F2")</strong></span>
+    }
+</div>

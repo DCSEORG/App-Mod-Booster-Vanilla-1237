@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>@ViewData["Title"] — Expense Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet" />
+    <style>
+        /* ===== RESET & BASE ===== */
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+        html, body { height: 100%; font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif; }
+        body { display: flex; background: #f0f2f5; color: #1a1a2e; }
+
+        /* ===== SIDEBAR ===== */
+        .sidebar {
+            width: 260px;
+            min-height: 100vh;
+            background: #1e2a3a;
+            color: #e8edf3;
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            left: 0; top: 0; bottom: 0;
+            z-index: 100;
+            box-shadow: 2px 0 12px rgba(0,0,0,0.15);
+        }
+        .sidebar-brand {
+            padding: 24px 20px 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+        }
+        .brand-logo {
+            font-size: 20px;
+            font-weight: 700;
+            color: #fff;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .brand-logo .logo-icon {
+            width: 36px; height: 36px;
+            background: linear-gradient(135deg, #0066cc, #0099ff);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 18px;
+        }
+        .brand-subtitle { font-size: 12px; color: #8899aa; margin-top: 4px; }
+
+        .sidebar-nav { flex: 1; padding: 16px 12px; }
+        .nav-section-label {
+            font-size: 10px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #5a7a9a;
+            padding: 8px 8px 4px;
+            margin-bottom: 4px;
+        }
+        .nav-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 10px 12px;
+            border-radius: 8px;
+            color: #aabccc;
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.15s ease;
+            margin-bottom: 2px;
+        }
+        .nav-item:hover { background: rgba(255,255,255,0.08); color: #fff; }
+        .nav-item.active { background: rgba(0,102,204,0.25); color: #4da6ff; border: 1px solid rgba(0,102,204,0.3); }
+        .nav-item .nav-icon { font-size: 16px; width: 20px; text-align: center; }
+
+        .sidebar-footer {
+            padding: 16px 20px;
+            border-top: 1px solid rgba(255,255,255,0.08);
+            font-size: 12px;
+            color: #5a7a9a;
+        }
+
+        /* ===== MAIN CONTENT ===== */
+        .main-content {
+            margin-left: 260px;
+            flex: 1;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .top-bar {
+            background: #fff;
+            padding: 16px 32px;
+            border-bottom: 1px solid #e8ecf0;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .top-bar-title { font-size: 18px; font-weight: 600; color: #1a1a2e; }
+        .top-bar-actions { display: flex; gap: 12px; align-items: center; }
+        .chat-link {
+            display: flex; align-items: center; gap: 6px;
+            padding: 8px 16px;
+            background: linear-gradient(135deg, #0066cc, #0099ff);
+            color: #fff;
+            border-radius: 8px;
+            text-decoration: none;
+            font-size: 13px;
+            font-weight: 500;
+            transition: opacity 0.15s;
+        }
+        .chat-link:hover { opacity: 0.9; }
+
+        .content-area { padding: 32px; flex: 1; }
+
+        /* ===== PAGE HEADER ===== */
+        .page-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+            margin-bottom: 24px;
+        }
+        .page-title { font-size: 28px; font-weight: 700; color: #1a1a2e; }
+        .page-subtitle { font-size: 14px; color: #6b7a8d; margin-top: 4px; }
+
+        /* ===== BUTTONS ===== */
+        .btn {
+            display: inline-flex; align-items: center; gap: 6px;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-size: 14px; font-weight: 500;
+            text-decoration: none;
+            border: none; cursor: pointer;
+            transition: all 0.15s ease;
+            white-space: nowrap;
+        }
+        .btn-primary { background: #0066cc; color: #fff; }
+        .btn-primary:hover { background: #0055aa; }
+        .btn-outline { background: #fff; color: #374151; border: 1.5px solid #d1d5db; }
+        .btn-outline:hover { background: #f9fafb; border-color: #9ca3af; }
+        .btn-success { background: #16a34a; color: #fff; }
+        .btn-success:hover { background: #15803d; }
+        .btn-danger { background: #dc2626; color: #fff; }
+        .btn-danger:hover { background: #b91c1c; }
+        .btn-sm { padding: 6px 12px; font-size: 13px; }
+
+        /* ===== CARDS ===== */
+        .card {
+            background: #fff;
+            border-radius: 12px;
+            padding: 24px;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06), 0 4px 12px rgba(0,0,0,0.04);
+            margin-bottom: 20px;
+        }
+        .card-title { font-size: 16px; font-weight: 600; color: #1a1a2e; margin-bottom: 16px; }
+
+        /* ===== FILTER BAR ===== */
+        .filter-bar {
+            display: flex; align-items: center; gap: 12px;
+            margin-bottom: 20px; flex-wrap: wrap;
+        }
+        .filter-label { font-size: 13px; font-weight: 500; color: #6b7a8d; }
+        .filter-buttons { display: flex; gap: 6px; flex-wrap: wrap; }
+        .filter-btn {
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 13px; font-weight: 500;
+            text-decoration: none;
+            background: #f0f2f5;
+            color: #374151;
+            border: 1.5px solid transparent;
+            transition: all 0.15s;
+        }
+        .filter-btn:hover { background: #e5e7eb; }
+        .filter-btn.active { background: #dbeafe; color: #1d4ed8; border-color: #93c5fd; }
+
+        /* ===== TABLE ===== */
+        .table-container { overflow-x: auto; }
+        .data-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 14px;
+        }
+        .data-table th {
+            text-align: left;
+            padding: 12px 16px;
+            font-size: 12px;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            color: #6b7a8d;
+            background: #f8f9fb;
+            border-bottom: 2px solid #e8ecf0;
+        }
+        .data-table td {
+            padding: 14px 16px;
+            border-bottom: 1px solid #f0f2f5;
+            color: #374151;
+            vertical-align: middle;
+        }
+        .data-table tbody tr:hover { background: #fafbfc; }
+        .data-table tbody tr:last-child td { border-bottom: none; }
+        .id-cell { color: #6b7a8d; font-weight: 500; font-size: 13px; }
+        .amount-cell { font-weight: 600; color: #1a1a2e; }
+        .empty-state { text-align: center; color: #9ca3af; padding: 40px; }
+
+        /* ===== USER AVATAR ===== */
+        .user-cell { display: flex; align-items: center; gap: 10px; }
+        .avatar {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, #0066cc, #0099ff);
+            color: #fff;
+            border-radius: 50%;
+            display: flex; align-items: center; justify-content: center;
+            font-size: 13px; font-weight: 600;
+            flex-shrink: 0;
+        }
+
+        /* ===== STATUS BADGES ===== */
+        .status-badge {
+            display: inline-flex; align-items: center;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px; font-weight: 600;
+        }
+        .status-draft     { background: #f3f4f6; color: #6b7280; }
+        .status-submitted { background: #dbeafe; color: #1d4ed8; }
+        .status-approved  { background: #dcfce7; color: #16a34a; }
+        .status-rejected  { background: #fee2e2; color: #dc2626; }
+
+        /* ===== SUMMARY BAR ===== */
+        .summary-bar {
+            display: flex; gap: 24px;
+            font-size: 13px; color: #6b7a8d;
+            padding: 8px 0;
+        }
+
+        /* ===== ALERT BANNERS ===== */
+        .alert-banner {
+            display: flex; gap: 12px;
+            padding: 16px 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border: 1px solid transparent;
+        }
+        .alert-error { background: #fef2f2; border-color: #fecaca; }
+        .alert-success { background: #f0fdf4; border-color: #bbf7d0; }
+        .alert-icon { font-size: 20px; flex-shrink: 0; }
+        .alert-content { flex: 1; font-size: 13px; }
+        .alert-content p { margin-top: 4px; color: #374151; }
+        .alert-content small { display: block; margin-top: 4px; color: #6b7a8d; }
+        .mi-fix { margin-top: 8px; padding: 8px 12px; background: rgba(0,0,0,0.05); border-radius: 6px; font-size: 12px; }
+        .dummy-note { font-style: italic; color: #9ca3af; }
+
+        /* ===== FORMS ===== */
+        .form-card { max-width: 640px; }
+        .expense-form { display: flex; flex-direction: column; gap: 20px; }
+        .form-row { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .form-group { display: flex; flex-direction: column; gap: 6px; }
+        .form-label { font-size: 13px; font-weight: 500; color: #374151; }
+        .required { color: #dc2626; }
+        .form-control {
+            padding: 10px 12px;
+            border: 1.5px solid #d1d5db;
+            border-radius: 8px;
+            font-size: 14px; color: #1a1a2e;
+            font-family: inherit;
+            transition: border-color 0.15s;
+            background: #fff;
+            width: 100%;
+        }
+        .form-control:focus { outline: none; border-color: #0066cc; box-shadow: 0 0 0 3px rgba(0,102,204,0.1); }
+        .form-hint { font-size: 12px; color: #9ca3af; }
+        .input-prefix-wrapper { position: relative; }
+        .input-prefix {
+            position: absolute; left: 12px; top: 50%; transform: translateY(-50%);
+            font-size: 14px; color: #6b7a8d; font-weight: 500;
+        }
+        .with-prefix { padding-left: 28px; }
+        textarea.form-control { resize: vertical; }
+        .form-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 8px; }
+
+        /* ===== DETAILS PAGE ===== */
+        .details-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; }
+        .detail-list { display: flex; flex-direction: column; }
+        .detail-row { display: grid; grid-template-columns: 140px 1fr; gap: 12px; padding: 12px 0; border-bottom: 1px solid #f0f2f5; align-items: start; }
+        .detail-row:last-child { border-bottom: none; }
+        .detail-row.highlight { background: #f8f9fb; margin: 0 -24px; padding: 12px 24px; }
+        .detail-row dt { font-size: 12px; font-weight: 600; color: #6b7a8d; text-transform: uppercase; letter-spacing: 0.4px; padding-top: 4px; }
+        .detail-row dd { font-size: 14px; color: #1a1a2e; }
+        .amount-large { font-size: 22px; font-weight: 700; color: #1a1a2e; }
+        .amount-large small { font-size: 13px; font-weight: 400; color: #9ca3af; }
+        .link { color: #0066cc; text-decoration: none; }
+        .link:hover { text-decoration: underline; }
+
+        /* ===== TIMELINE ===== */
+        .timeline { display: flex; flex-direction: column; gap: 0; margin-bottom: 20px; }
+        .timeline-item { display: flex; gap: 12px; padding: 10px 0; position: relative; }
+        .timeline-item:not(:last-child)::before {
+            content: ''; position: absolute; left: 7px; top: 28px; bottom: -10px;
+            width: 2px; background: #e8ecf0;
+        }
+        .timeline-dot {
+            width: 16px; height: 16px; border-radius: 50%;
+            flex-shrink: 0; margin-top: 4px;
+            background: #d1d5db;
+        }
+        .timeline-dot.created   { background: #6b7a8d; }
+        .timeline-dot.submitted { background: #1d4ed8; }
+        .timeline-dot.approved  { background: #16a34a; }
+        .timeline-dot.rejected  { background: #dc2626; }
+        .timeline-content { display: flex; flex-direction: column; gap: 2px; }
+        .timeline-content strong { font-size: 13px; font-weight: 600; }
+        .timeline-content span { font-size: 12px; color: #6b7a8d; }
+
+        /* ===== ACTION SECTION ===== */
+        .action-section { border-top: 1px solid #f0f2f5; padding-top: 20px; margin-top: 8px; }
+        .action-title { font-size: 14px; font-weight: 600; margin-bottom: 14px; color: #374151; }
+        .action-form { display: flex; flex-direction: column; gap: 14px; }
+        .action-buttons { display: flex; gap: 10px; flex-wrap: wrap; }
+
+        /* ===== RESPONSIVE ===== */
+        @@media (max-width: 900px) {
+            .sidebar { transform: translateX(-100%); }
+            .main-content { margin-left: 0; }
+            .details-grid { grid-template-columns: 1fr; }
+            .form-row { grid-template-columns: 1fr; }
+        }
+    </style>
+</head>
+<body>
+    <!-- Sidebar -->
+    <nav class="sidebar">
+        <div class="sidebar-brand">
+            <div class="brand-logo">
+                <div class="logo-icon">💰</div>
+                <span>ExpenseApp</span>
+            </div>
+            <div class="brand-subtitle">Modern Expense Management</div>
+        </div>
+        <div class="sidebar-nav">
+            <div class="nav-section-label">Main Menu</div>
+            <a href="/Index" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Index" ? "active" : "")">
+                <span class="nav-icon">📋</span>
+                All Expenses
+            </a>
+            <a href="/Create" class="nav-item @(ViewData["ActivePage"]?.ToString() == "Create" ? "active" : "")">
+                <span class="nav-icon">➕</span>
+                New Expense
+            </a>
+
+            <div class="nav-section-label" style="margin-top: 16px;">Quick Filters</div>
+            <a href="/Index?status=Draft" class="nav-item">
+                <span class="nav-icon">📝</span> Draft
+            </a>
+            <a href="/Index?status=Submitted" class="nav-item">
+                <span class="nav-icon">📤</span> Submitted
+            </a>
+            <a href="/Index?status=Approved" class="nav-item">
+                <span class="nav-icon">✅</span> Approved
+            </a>
+            <a href="/Index?status=Rejected" class="nav-item">
+                <span class="nav-icon">❌</span> Rejected
+            </a>
+
+            <div class="nav-section-label" style="margin-top: 16px;">Developer</div>
+            <a href="/swagger" class="nav-item" target="_blank">
+                <span class="nav-icon">🔌</span> API (Swagger)
+            </a>
+        </div>
+        <div class="sidebar-footer">
+            Expense Manager &copy; @DateTime.Now.Year
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <div class="main-content">
+        <div class="top-bar">
+            <div class="top-bar-title">@(ViewData["Title"] ?? "Expense Manager")</div>
+            <div class="top-bar-actions">
+                <a href="/chatui/index.html" class="chat-link" target="_blank">
+                    🤖 AI Assistant
+                </a>
+            </div>
+        </div>
+        <div class="content-area">
+            @RenderBody()
+        </div>
+    </div>
+
+    @RenderSection("Scripts", required: false)
+</body>
+</html>
