@@ -1,0 +1,17 @@
+# .NET build artifacts
+app/bin/
+app/obj/
+publish/
+
+# Python cache
+__pycache__/
+*.pyc
+*.pyo
+
+# IDE
+.vscode/
+.vs/
+*.user
+
+# Environment
+.env
