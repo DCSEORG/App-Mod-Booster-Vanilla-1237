@@ -20,7 +20,7 @@
         <div class="alert-content">
             <strong>Error</strong>
             <p>@Model.ErrorInfo.Message</p>
-            @if (Model.ErrorInfo.IsMangedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
+            @if (Model.ErrorInfo.IsManagedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
             {
                 <div class="mi-fix"><strong>💡 Fix:</strong> @Model.ErrorInfo.ManagedIdentityFix</div>
             }

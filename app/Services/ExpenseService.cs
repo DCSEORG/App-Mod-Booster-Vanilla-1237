@@ -30,7 +30,7 @@ public class ExpenseService : IExpenseService
             Message = ex.Message,
             File = file,
             LineNumber = line,
-            IsMangedIdentityError = isManagedIdentityError,
+            IsManagedIdentityError = isManagedIdentityError,
             ManagedIdentityFix = isManagedIdentityError
                 ? "Ensure the Managed Identity has been added to the database with db_datareader, db_datawriter, and EXECUTE permissions. Run: python3 run-sql-dbrole.py"
                 : null

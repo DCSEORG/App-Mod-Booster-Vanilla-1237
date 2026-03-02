@@ -16,7 +16,7 @@
             {
                 <small>Location: @System.IO.Path.GetFileName(Model.ErrorInfo.File) (line @Model.ErrorInfo.LineNumber)</small>
             }
-            @if (Model.ErrorInfo.IsMangedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
+            @if (Model.ErrorInfo.IsManagedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
             {
                 <div class="mi-fix">
                     <strong>💡 Managed Identity Fix:</strong> @Model.ErrorInfo.ManagedIdentityFix
