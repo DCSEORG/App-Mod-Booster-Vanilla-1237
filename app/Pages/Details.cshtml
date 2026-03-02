@@ -1,0 +1,174 @@
+@page "{id:int}"
+@model ExpenseApp.Pages.DetailsModel
+@{
+    ViewData["Title"] = Model.Expense != null ? $"Expense #{Model.Expense.ExpenseId}" : "Expense Details";
+    ViewData["ActivePage"] = "Index";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">Expense Details</h1>
+        <p class="page-subtitle">Review and manage this expense</p>
+    </div>
+    <a href="/Index" class="btn btn-outline">← Back to Expenses</a>
+</div>
+
+@if (Model.ErrorInfo != null)
+{
+    <div class="alert-banner alert-error">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+            <strong>Error</strong>
+            <p>@Model.ErrorInfo.Message</p>
+            @if (Model.ErrorInfo.IsManagedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
+            {
+                <div class="mi-fix"><strong>💡 Fix:</strong> @Model.ErrorInfo.ManagedIdentityFix</div>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.SuccessMessage != null)
+{
+    <div class="alert-banner alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-content"><strong>@Model.SuccessMessage</strong></div>
+    </div>
+}
+
+@if (Model.Expense == null)
+{
+    <div class="card">
+        <p class="empty-state">Expense not found.</p>
+    </div>
+}
+else
+{
+    var e = Model.Expense;
+    <div class="details-grid">
+        <!-- Main Details -->
+        <div class="card details-card">
+            <h2 class="card-title">Expense Information</h2>
+            <dl class="detail-list">
+                <div class="detail-row">
+                    <dt>Expense ID</dt>
+                    <dd>#@e.ExpenseId</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Status</dt>
+                    <dd><span class="status-badge status-@e.StatusName.ToLower()">@e.StatusName</span></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Employee</dt>
+                    <dd>
+                        <div class="user-cell">
+                            <div class="avatar">@(e.UserName.Length > 0 ? e.UserName[0].ToString() : "?")</div>
+                            <span>@e.UserName</span>
+                        </div>
+                    </dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Category</dt>
+                    <dd>@e.CategoryName</dd>
+                </div>
+                <div class="detail-row highlight">
+                    <dt>Amount</dt>
+                    <dd class="amount-large">£@e.AmountGBP.ToString("F2") <small>(@e.AmountMinor pence)</small></dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Currency</dt>
+                    <dd>@e.Currency</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Expense Date</dt>
+                    <dd>@e.ExpenseDate.ToString("dd MMMM yyyy")</dd>
+                </div>
+                <div class="detail-row">
+                    <dt>Description</dt>
+                    <dd>@(e.Description ?? "—")</dd>
+                </div>
+                @if (e.ReceiptFile != null)
+                {
+                    <div class="detail-row">
+                        <dt>Receipt</dt>
+                        <dd><a href="@e.ReceiptFile" class="link">@e.ReceiptFile</a></dd>
+                    </div>
+                }
+            </dl>
+        </div>
+
+        <!-- Timeline / Review -->
+        <div class="card details-card">
+            <h2 class="card-title">Timeline</h2>
+            <div class="timeline">
+                <div class="timeline-item">
+                    <div class="timeline-dot created"></div>
+                    <div class="timeline-content">
+                        <strong>Created</strong>
+                        <span>@e.CreatedAt.ToString("dd MMM yyyy HH:mm")</span>
+                    </div>
+                </div>
+                @if (e.SubmittedAt.HasValue)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-dot submitted"></div>
+                        <div class="timeline-content">
+                            <strong>Submitted</strong>
+                            <span>@e.SubmittedAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                        </div>
+                    </div>
+                }
+                @if (e.ReviewedAt.HasValue)
+                {
+                    <div class="timeline-item">
+                        <div class="timeline-dot @(e.StatusName.ToLower())"></div>
+                        <div class="timeline-content">
+                            <strong>@e.StatusName</strong>
+                            <span>@e.ReviewedAt.Value.ToString("dd MMM yyyy HH:mm")</span>
+                            @if (e.ReviewedByName != null)
+                            {
+                                <span>by @e.ReviewedByName</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+
+            <!-- Manager Actions -->
+            @if (e.StatusName == "Submitted" || e.StatusName == "Draft")
+            {
+                <div class="action-section">
+                    <h3 class="action-title">Manager Actions</h3>
+                    <form method="post" class="action-form">
+                        @Html.AntiForgeryToken()
+                        <input type="hidden" name="id" value="@e.ExpenseId" />
+                        <div class="form-group">
+                            <label class="form-label" for="ReviewedBy">Reviewed By</label>
+                            <select id="ReviewedBy" name="ReviewedBy" class="form-control">
+                                <option value="">— Select Reviewer —</option>
+                                @foreach (var user in Model.Users)
+                                {
+                                    <option value="@user.UserId">@user.UserName (@user.RoleName)</option>
+                                }
+                            </select>
+                        </div>
+                        <div class="action-buttons">
+                            <button type="submit" name="action" value="approve" class="btn btn-success">
+                                ✓ Approve
+                            </button>
+                            <button type="submit" name="action" value="reject" class="btn btn-danger">
+                                ✗ Reject
+                            </button>
+                            @if (e.StatusName == "Draft")
+                            {
+                                <button type="submit" name="action" value="submit" class="btn btn-primary">
+                                    → Submit
+                                </button>
+                            }
+                        </div>
+                    </form>
+                </div>
+            }
+        </div>
+    </div>
+}

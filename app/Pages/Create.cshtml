@@ -1,0 +1,105 @@
+@page
+@model ExpenseApp.Pages.CreateModel
+@{
+    ViewData["Title"] = "New Expense";
+    ViewData["ActivePage"] = "Create";
+}
+
+<div class="page-header">
+    <div>
+        <h1 class="page-title">New Expense</h1>
+        <p class="page-subtitle">Submit a new expense for approval</p>
+    </div>
+    <a href="/Index" class="btn btn-outline">← Back to Expenses</a>
+</div>
+
+@if (Model.ErrorInfo != null)
+{
+    <div class="alert-banner alert-error">
+        <div class="alert-icon">⚠️</div>
+        <div class="alert-content">
+            <strong>Error</strong>
+            <p>@Model.ErrorInfo.Message</p>
+            @if (Model.ErrorInfo.IsManagedIdentityError && Model.ErrorInfo.ManagedIdentityFix != null)
+            {
+                <div class="mi-fix"><strong>💡 Fix:</strong> @Model.ErrorInfo.ManagedIdentityFix</div>
+            }
+        </div>
+    </div>
+}
+
+@if (Model.SuccessMessage != null)
+{
+    <div class="alert-banner alert-success">
+        <div class="alert-icon">✅</div>
+        <div class="alert-content"><strong>@Model.SuccessMessage</strong></div>
+    </div>
+}
+
+<div class="card form-card">
+    <form method="post" class="expense-form">
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label class="form-label" for="UserId">Employee <span class="required">*</span></label>
+            <select id="UserId" name="UserId" class="form-control" required>
+                <option value="">— Select Employee —</option>
+                @foreach (var user in Model.Users)
+                {
+                    <option value="@user.UserId">@user.UserName (@user.RoleName)</option>
+                }
+            </select>
+            @if (!Model.Users.Any())
+            {
+                <small class="form-hint">⚠️ Could not load users from database. Check connection.</small>
+            }
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="CategoryId">Category <span class="required">*</span></label>
+            <select id="CategoryId" name="CategoryId" class="form-control" required>
+                <option value="">— Select Category —</option>
+                @foreach (var cat in Model.Categories)
+                {
+                    <option value="@cat.CategoryId">@cat.CategoryName</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-row">
+            <div class="form-group">
+                <label class="form-label" for="AmountGBP">Amount (£) <span class="required">*</span></label>
+                <div class="input-prefix-wrapper">
+                    <span class="input-prefix">£</span>
+                    <input type="number" id="AmountGBP" name="AmountGBP"
+                           class="form-control with-prefix"
+                           step="0.01" min="0.01" max="99999.99"
+                           placeholder="0.00" required />
+                </div>
+                <small class="form-hint">Enter the amount in pounds (e.g. 12.50 for £12.50)</small>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="ExpenseDate">Expense Date <span class="required">*</span></label>
+                <input type="date" id="ExpenseDate" name="ExpenseDate"
+                       class="form-control"
+                       value="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       max="@DateTime.Today.ToString("yyyy-MM-dd")"
+                       required />
+            </div>
+        </div>
+
+        <div class="form-group">
+            <label class="form-label" for="Description">Description</label>
+            <textarea id="Description" name="Description"
+                      class="form-control"
+                      rows="3"
+                      placeholder="Brief description of the expense..."></textarea>
+        </div>
+
+        <div class="form-actions">
+            <a href="/Index" class="btn btn-outline">Cancel</a>
+            <button type="submit" class="btn btn-primary">Submit Expense</button>
+        </div>
+    </form>
+</div>
